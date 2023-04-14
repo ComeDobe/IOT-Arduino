@@ -1,0 +1,104 @@
+#define borneENA        10      // On associe la borne "ENA" du L298N à la pin D10 de l'arduino
+#define borneIN1        9       // On associe la borne "IN1" du L298N à la pin D9 de l'arduino
+#define borneIN2        8       // On associe la borne "IN2" du L298N à la pin D8 de l'arduino
+#define borneIN3        7       // On associe la borne "IN3" du L298N à la pin D7 de l'arduino
+#define borneIN4        6       // On associe la borne "IN4" du L298N à la pin D6 de l'arduino
+#define echoPin         2       // broche Echo 
+#define trigPin         11      // broche Trigger
+
+int maximumRange = 200; // distance Maximale acceptée (en cm)
+int minimumRange = 0;   // distance Minimale acceptée (en cm)
+long duration, distance; // Durée utilisé pour calculer la distance
+
+//*******//
+// SETUP //
+//*******//
+void setup() {
+  
+  // Configuration de toutes les pins de l'Arduino en "sortie" (car elles attaquent les entrées du module L298N)
+  pinMode(borneIN1, OUTPUT);
+  pinMode(borneIN2, OUTPUT);
+  pinMode(borneIN3, OUTPUT);
+  pinMode(borneIN4, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  Serial.begin(9600) ; 
+  Serial.println("debut " );
+}
+
+//**************************//
+// Boucle principale : LOOP //
+//**************************//
+void loop() {
+  // Envoi une impulsion de 10 micro seconde sur la broche "trigger" 
+  Serial.println("-1");
+  digitalWrite(trigPin, LOW); 
+  delayMicroseconds(2); 
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);  
+  digitalWrite(trigPin, LOW);
+  // lecture de la distance 
+   duration = pulseIn(echoPin, HIGH);
+  // Calculating the distance
+  distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+  // Displays the distance on the Serial Monitor
+
+Serial.println(distance);
+  // Configuration du L298N en "marche avant", pour le moteur connecté au pont A. Selon sa table de vérité, il faut que :
+if (distance > 20){
+  // marche avant toute
+  Serial.println(distance);
+  digitalWrite(borneIN1, HIGH);                 // L'entrée IN1 doit être au niveau haut
+  digitalWrite(borneIN2, LOW);                  // L'entrée IN2 doit être au niveau bas
+  digitalWrite(borneIN3, LOW);                 
+  digitalWrite(borneIN4, HIGH);
+}
+else
+{
+  // stopper les moteurs
+  digitalWrite(borneIN1, LOW);                 // L'entrée IN1 doit être au niveau haut
+  digitalWrite(borneIN2, LOW);                  // L'entrée IN2 doit être au niveau bas
+  digitalWrite(borneIN3, LOW);                 
+  digitalWrite(borneIN4, LOW);
+  // attend 1 seconde
+  delay(1000) ; 
+  // marche arriere en tourant 
+   digitalWrite(borneIN1, LOW);                 // L'entrée IN1 doit être au niveau haut
+  digitalWrite(borneIN2, HIGH);                  // L'entrée IN2 doit être au niveau bas
+  digitalWrite(borneIN3, LOW);                 
+  digitalWrite(borneIN4, HIGH);
+
+
+}
+
+
+
+
+  // Et on lance le moteur (branché sur le pont A du L298N)
+  // lancerRotationMoteurPontA();
+
+  // Puis on configure le L298N en "marche arrière", pour le moteur câblé sur le pont A. Selon sa table de vérité, il faut que :
+// if (distance < 20){
+//   digitalWrite(borneIN1, LOW);                  // L'entrée IN1 doit être au niveau bas
+//   digitalWrite(borneIN2, HIGH);                 // L'entrée IN2 doit être au niveau haut
+//   digitalWrite(borneIN3, HIGH);                 
+//   digitalWrite(borneIN4, LOW);
+// }
+  // Et on relance le moteur (branché sur le pont A du L298N)
+  // lancerRotationMoteurPontA();
+  
+  // Puis... on boucle à l'infini !
+}
+
+//************************************************************************************//
+// Fonction : lancerRotationMoteurPontA()                                             //
+// But :      Active l'alimentation du moteur branché sur le pont A         0          //
+//            pendant 2 secondes, puis le met à l'arrêt (au moins 1 seconde)          //
+//************************************************************************************//
+void lancerRotationMoteurPontA() {
+  digitalWrite(borneENA, HIGH);       // Active l'alimentation du moteur 1
+  delay(2000);                        // et attend 2 secondes
+  
+  digitalWrite(borneENA, LOW);        // Désactive l'alimentation du moteur 1
+  delay(1000);                        // et attend 1 seconde
+}
